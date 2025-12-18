@@ -14,8 +14,36 @@
 
 ## 🚀 安装
 
+### 方式一：直接使用（推荐）
+
+无需安装，直接在 MCP 配置中使用 `npx`：
+
+```json
+{
+  "mcpServers": {
+    "obsidian-notes": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@andysama/obsidian-mcp-server",
+        "--vault",
+        "/path/to/your/obsidian/vault"
+      ]
+    }
+  }
+}
+```
+
+### 方式二：全局安装
+
 ```bash
-git clone https://github.com/YOUR_USERNAME/obsidian-mcp-server.git
+npm install -g @andysama/obsidian-mcp-server
+```
+
+### 方式三：从源码构建
+
+```bash
+git clone https://github.com/andysama-work/obsidian-mcp-server.git
 cd obsidian-mcp-server
 npm install
 npm run build
