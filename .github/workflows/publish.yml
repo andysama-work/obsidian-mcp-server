@@ -1,0 +1,60 @@
+name: Publish to npm
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'package.json'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: 🔍 检测版本变化
+        id: version
+        run: |
+          OLD_VERSION=$(git show HEAD^:package.json | grep '"version"' | sed 's/.*"version": "\(.*\)".*/\1/')
+          NEW_VERSION=$(grep '"version"' package.json | sed 's/.*"version": "\(.*\)".*/\1/')
+          echo "old=$OLD_VERSION" >> $GITHUB_OUTPUT
+          echo "new=$NEW_VERSION" >> $GITHUB_OUTPUT
+          if [ "$OLD_VERSION" != "$NEW_VERSION" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 🟢 配置 Node.js
+        if: steps.version.outputs.changed == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: 📦 安装依赖
+        if: steps.version.outputs.changed == 'true'
+        run: npm ci
+
+      - name: 🔨 构建项目
+        if: steps.version.outputs.changed == 'true'
+        run: npm run build
+
+      - name: 🚀 发布到 npm
+        if: steps.version.outputs.changed == 'true'
+        run: npm publish --access public --provenance
+
+      - name: 🏷️ 创建 Git 标签
+        if: steps.version.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag v${{ steps.version.outputs.new }}
+          git push origin v${{ steps.version.outputs.new }}

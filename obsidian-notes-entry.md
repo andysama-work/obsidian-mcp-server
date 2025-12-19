@@ -1,8 +1,23 @@
+---
+category: ai
+tags: [MCP, Obsidian, TypeScript, AI工具, 自制工具]
+summary: Obsidian MCP Server - 将 Obsidian 笔记库暴露为 MCP 服务，让 AI 助手可以搜索和读取笔记
+folder: 知识点/04-人工智能/MCP/自己制作的MCP/
+created: 2024-12-19
+---
+
 # Obsidian MCP Server
 
-将你的 Obsidian 笔记库暴露为 MCP 服务，让 AI 助手可以搜索和读取你的笔记。
+## 项目概述
 
-## ✨ 功能
+将 Obsidian 笔记库暴露为 MCP 服务，让 AI 助手（如 Claude、Windsurf）可以搜索和读取你的笔记。
+
+- **包名**: `@andysama/obsidian-mcp-server`
+- **版本**: 1.0.0
+- **仓库**: https://github.com/andysama-work/obsidian-mcp-server
+- **协议**: MIT
+
+## 功能列表
 
 | 工具 | 描述 |
 |------|------|
@@ -11,11 +26,17 @@
 | `list_folder` | 列出文件夹下的笔记和子文件夹 |
 | `get_note_structure` | 获取笔记库目录结构 |
 | `full_text_search` | 在所有笔记中全文搜索 |
-| `create_note` | 创建新笔记 |
-| `update_note` | 更新已存在的笔记 |
-| `delete_note` | 删除指定笔记 |
 
-## 🚀 安装
+## 技术栈
+
+- **语言**: TypeScript
+- **运行时**: Node.js
+- **核心依赖**:
+  - `@modelcontextprotocol/sdk` - MCP SDK
+  - `gray-matter` - YAML Frontmatter 解析
+  - `glob` - 文件匹配
+
+## 安装方式
 
 ### 方式一：直接使用（推荐）
 
@@ -52,11 +73,13 @@ npm install
 npm run build
 ```
 
-## ⚙️ 配置
+## 配置示例
 
 ### Claude Desktop
 
-编辑 `%APPDATA%\Claude\claude_desktop_config.json`（Windows）或 `~/Library/Application Support/Claude/claude_desktop_config.json`（macOS）：
+编辑配置文件：
+- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
 
 ```json
 {
@@ -75,48 +98,18 @@ npm run build
 
 ### Windsurf / Cursor
 
-在 MCP 配置文件中添加：
+在 MCP 配置文件中添加相同配置。
 
-```json
-{
-  "mcpServers": {
-    "obsidian-notes": {
-      "command": "node",
-      "args": [
-        "/path/to/obsidian-mcp-server/dist/index.js",
-        "--vault",
-        "/path/to/your/obsidian/vault"
-      ]
-    }
-  }
-}
-```
-
-> ⚠️ 请将 `/path/to/your/obsidian/vault` 替换为你的 Obsidian 笔记库实际路径
-
-## 📖 使用示例
+## 使用示例
 
 配置完成后，AI 助手可以：
 
-- 搜索笔记：`搜索关于 STM32 的笔记`
-- 读取内容：`读取 STM32系列选型速查.md`
-- 浏览结构：`列出硬件学习文件夹的内容`
-- 全文搜索：`在笔记中搜索 "定时器"`
+- **搜索笔记**: `搜索关于 STM32 的笔记`
+- **读取内容**: `读取 STM32系列选型速查.md`
+- **浏览结构**: `列出硬件学习文件夹的内容`
+- **全文搜索**: `在笔记中搜索 "定时器"`
 
-## 🛠️ 开发
-
-```bash
-# 安装依赖
-npm install
-
-# 构建
-npm run build
-
-# 测试运行（需指定 vault 路径）
-node dist/index.js --vault "/path/to/vault"
-```
-
-## 📝 Frontmatter 支持
+## Frontmatter 支持
 
 本工具会解析笔记的 YAML Frontmatter，支持以下字段：
 
@@ -130,6 +123,6 @@ created: 2024-12-18
 ---
 ```
 
-## 📄 License
+## 本地路径
 
-MIT
+项目位置: `D:\AI\MCP\obsidian-mcp-server`

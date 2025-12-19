@@ -147,6 +147,59 @@ async function getNoteStructure(): Promise<Record<string, any>> {
     return structure;
 }
 
+// 创建笔记
+async function createNote(notePath: string, content: string): Promise<string> {
+    const fullPath = path.join(VAULT_PATH, notePath);
+    
+    // 确保目录存在
+    const dir = path.dirname(fullPath);
+    await fs.mkdir(dir, { recursive: true });
+    
+    // 检查文件是否已存在
+    try {
+        await fs.access(fullPath);
+        throw new Error(`笔记已存在: ${notePath}`);
+    } catch (err: any) {
+        if (err.code !== 'ENOENT') throw err;
+    }
+    
+    // 写入文件
+    await fs.writeFile(fullPath, content, 'utf-8');
+    return `笔记创建成功: ${notePath}`;
+}
+
+// 更新笔记
+async function updateNote(notePath: string, content: string): Promise<string> {
+    const fullPath = path.join(VAULT_PATH, notePath);
+    
+    // 检查文件是否存在
+    try {
+        await fs.access(fullPath);
+    } catch {
+        throw new Error(`笔记不存在: ${notePath}`);
+    }
+    
+    // 写入文件
+    await fs.writeFile(fullPath, content, 'utf-8');
+    return `笔记更新成功: ${notePath}`;
+}
+
+// 删除笔记
+async function deleteNote(notePath: string): Promise<string> {
+    const fullPath = path.join(VAULT_PATH, notePath);
+    
+    // 检查文件是否存在
+    try {
+        await fs.access(fullPath);
+    } catch {
+        throw new Error(`笔记不存在: ${notePath}`);
+    }
+    
+    // 删除文件
+    await fs.unlink(fullPath);
+    return `笔记删除成功: ${notePath}`;
+}
+
 // 全文搜索
 async function fullTextSearch(keyword: string): Promise<Array<{ path: string; matches: string[] }>> {
     const files = await glob("**/*.md", {
@@ -244,6 +297,41 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
                 required: ["keyword"],
             },
         },
+        {
+            name: "create_note",
+            description: "创建新笔记",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    path: { type: "string", description: "笔记的相对路径（如 知识点/04-人工智能/MCP/自己制作的MCP/新笔记.md）" },
+                    content: { type: "string", description: "笔记内容（支持 Markdown 和 Frontmatter）" },
+                },
+                required: ["path", "content"],
+            },
+        },
+        {
+            name: "update_note",
+            description: "更新已存在的笔记内容",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    path: { type: "string", description: "笔记的相对路径" },
+                    content: { type: "string", description: "新的笔记内容" },
+                },
+                required: ["path", "content"],
+            },
+        },
+        {
+            name: "delete_note",
+            description: "删除指定笔记",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    path: { type: "string", description: "笔记的相对路径" },
+                },
+                required: ["path"],
+            },
+        },
     ],
 }));
 
@@ -289,6 +377,27 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 const results = await fullTextSearch(args?.keyword as string);
                 return {
                     content: [{ type: "text", text: JSON.stringify(results, null, 2) }],
+                };
+            }
+
+            case "create_note": {
+                const result = await createNote(args?.path as string, args?.content as string);
+                return {
+                    content: [{ type: "text", text: result }],
+                };
+            }
+
+            case "update_note": {
+                const result = await updateNote(args?.path as string, args?.content as string);
+                return {
+                    content: [{ type: "text", text: result }],
+                };
+            }
+
+            case "delete_note": {
+                const result = await deleteNote(args?.path as string);
+                return {
+                    content: [{ type: "text", text: result }],
                 };
             }
 
