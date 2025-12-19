@@ -49,7 +49,9 @@ jobs:
 
       - name: 🚀 发布到 npm
         if: steps.version.outputs.changed == 'true'
-        run: npm publish --access public --provenance
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: 🏷️ 创建 Git 标签
         if: steps.version.outputs.changed == 'true'
