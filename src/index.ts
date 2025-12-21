@@ -150,11 +150,11 @@ async function getNoteStructure(): Promise<Record<string, any>> {
 // 创建笔记
 async function createNote(notePath: string, content: string): Promise<string> {
     const fullPath = path.join(VAULT_PATH, notePath);
-    
+
     // 确保目录存在
     const dir = path.dirname(fullPath);
     await fs.mkdir(dir, { recursive: true });
-    
+
     // 检查文件是否已存在
     try {
         await fs.access(fullPath);
@@ -162,7 +162,7 @@ async function createNote(notePath: string, content: string): Promise<string> {
     } catch (err: any) {
         if (err.code !== 'ENOENT') throw err;
     }
-    
+
     // 写入文件
     await fs.writeFile(fullPath, content, 'utf-8');
     return `笔记创建成功: ${notePath}`;
@@ -171,30 +171,51 @@ async function createNote(notePath: string, content: string): Promise<string> {
 // 更新笔记
 async function updateNote(notePath: string, content: string): Promise<string> {
     const fullPath = path.join(VAULT_PATH, notePath);
-    
+
     // 检查文件是否存在
     try {
         await fs.access(fullPath);
     } catch {
         throw new Error(`笔记不存在: ${notePath}`);
     }
-    
+
     // 写入文件
     await fs.writeFile(fullPath, content, 'utf-8');
     return `笔记更新成功: ${notePath}`;
 }
 
+// 创建文件夹
+async function createFolder(folderPath: string): Promise<string> {
+    const fullPath = path.join(VAULT_PATH, folderPath);
+
+    // 检查文件夹是否已存在
+    try {
+        const stat = await fs.stat(fullPath);
+        if (stat.isDirectory()) {
+            throw new Error(`文件夹已存在: ${folderPath}`);
+        } else {
+            throw new Error(`路径已存在但不是文件夹: ${folderPath}`);
+        }
+    } catch (err: any) {
+        if (err.code !== 'ENOENT') throw err;
+    }
+
+    // 创建文件夹
+    await fs.mkdir(fullPath, { recursive: true });
+    return `文件夹创建成功: ${folderPath}`;
+}
+
 // 删除笔记
 async function deleteNote(notePath: string): Promise<string> {
     const fullPath = path.join(VAULT_PATH, notePath);
-    
+
     // 检查文件是否存在
     try {
         await fs.access(fullPath);
     } catch {
         throw new Error(`笔记不存在: ${notePath}`);
     }
-    
+
     // 删除文件
     await fs.unlink(fullPath);
     return `笔记删除成功: ${notePath}`;
@@ -332,6 +353,17 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
                 required: ["path"],
             },
         },
+        {
+            name: "create_folder",
+            description: "创建新文件夹",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    path: { type: "string", description: "文件夹的相对路径（如 知识点/04-人工智能/MCP/新文件夹）" },
+                },
+                required: ["path"],
+            },
+        },
     ],
 }));
 
@@ -396,6 +428,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
             case "delete_note": {
                 const result = await deleteNote(args?.path as string);
+                return {
+                    content: [{ type: "text", text: result }],
+                };
+            }
+
+            case "create_folder": {
+                const result = await createFolder(args?.path as string);
                 return {
                     content: [{ type: "text", text: result }],
                 };
